@@ -1,40 +1,43 @@
-name: Pruebas separadas en construcción y test
+name: crear y notificar
 
 on:
-  workflow_dispatch:
+  push:
+    branches:
+      - guamarmor
 
 jobs:
   build:
     runs-on: ubuntu-latest
+
     steps:
-      - name: Clonando el repositorio
-        uses: actions/checkout@v3
+    - name: Checkout code
+      uses: actions/checkout@v3
 
-      - name: Configurando Java
-        uses: actions/setup-java@v3
-        with:
-          distribution: 'temurin'
-          java-version: '16'
+    - name: Set up JDK
+      uses: actions/setup-java@v3
+      with:
+        distribution: 'temurin'
+        java-version: '17'
 
-      - name: Construyendo el código
-        run: |
-          chmod +x gradlew
-          ./gradlew build -x test
-  
-  test:
-    runs-on: ubuntu-latest
-    needs: build
-    steps:
-      - name: Clonando el repositorio
-        uses: actions/checkout@v3
+    - name: Give execution permission to Gradle wrapper
+      run: chmod +x gradlew
 
-      - name: Configurando Java
-        uses: actions/setup-java@v3
-        with:
-          distribution: 'temurin'
-          java-version: '16'
+    - name: Build with Gradle
+      run: ./gradlew build
 
-      - name: Ejecutando los tests
-        run: |
-          chmod +x gradlew
-          ./gradlew test
+    - name: Run tests
+      run: ./gradlew test
+
+    - name: Send email notification
+      if: success()
+      uses: dawidd6/action-send-mail@v3
+      with:
+        server_address: smtp.gmail.com
+        server_port: 465
+        username: ${{ secrets.EMAIL_USERNAME }}
+        password: ${{ secrets.EMAIL_PASSWORD }}
+        subject: " Ejecución correcta del flujo"
+        to: ${{ secrets.PROFESORA_EMAIL }}
+        from: ${{ secrets.EMAIL_USERNAME }}
+        body: |
+          La ejecución del flujo en la rama suuvus ha sido correcta.
