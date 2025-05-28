@@ -3,7 +3,7 @@ name: crear y notificar
 on:
   push:
     branches:
-      - guamarmor
+      - solmunjim
 
 jobs:
   build:
